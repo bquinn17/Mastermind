@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -27,6 +28,9 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
     private ArrayList<Color> colors;
     private Label message;
+    private GridPane guesses;
+    private HBox answer;
+    private GridPane hints;
 
     @Override
     public void init(){
@@ -51,7 +55,7 @@ public class MastermindGraphicalVC extends Application implements Observer{
         message = new Label(getMessage());
         message.setPadding(new Insets(20,20,20,20));
 
-        GridPane hints = new GridPane();
+        hints = new GridPane();
         hints.setPadding(new Insets(68,10,10,0));
         hints.setHgap(2);
         hints.setVgap(35);
@@ -70,18 +74,28 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
         }
 
-        GridPane guesses = new GridPane();
+        answer = new HBox();
+        answer.setSpacing(5);
+        for (int k = 0; k < MastermindModel.CODE_LENGTH ; k++) {
+            Rectangle rect = new Rectangle(50, 50, Color.GRAY);
+            answer.getChildren().add(k,rect);
+        }
+
+        guesses = new GridPane();
         guesses.setHgap(5);
         guesses.setVgap(5);
-
         for (int col = 0; col < MastermindModel.CODE_LENGTH ; col++) {
             guesses.addColumn(col);
-            for (int row = 0; row < MastermindModel.MAX_GUESSES + 1; row++) {
+            for (int row = 0; row < MastermindModel.MAX_GUESSES; row++) {
                     Rectangle rect = new Rectangle(50, 50, Color.GRAY);
                     rect.setOnMouseClicked(event -> rect.setFill(nextColor((Color)rect.getFill())));
                     guesses.add(rect,col,row);
             }
         }
+
+        VBox center = new VBox();
+        center.setSpacing(5);
+        center.getChildren().addAll(answer,guesses);
 
         VBox buttons = new VBox();
         Button newGame = new Button("New Game");
@@ -89,10 +103,10 @@ public class MastermindGraphicalVC extends Application implements Observer{
         Button peek = new Button("Peek");
         peek.setOnAction(event -> {
             if (peek.getText().equals("Peek")){
-                showAnswer(true);
+                model.peek();
                 peek.setText("Hide");
             } else {
-                showAnswer(false);
+                model.peek();
                 peek.setText("Peek");
             }
         });
@@ -105,13 +119,11 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
         borderPane.setPadding(new Insets(10,10,10,10));
         borderPane.setTop(message);
-        borderPane.setCenter(guesses);
+        borderPane.setCenter(center);
         borderPane.setLeft(hints);
         borderPane.setRight(buttons);
 
-
         Scene scene = new Scene(borderPane);
-
         primaryStage.setScene(scene);
         primaryStage.setTitle("Mastermind");
 

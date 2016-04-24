@@ -53,14 +53,17 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        //label at the top for the status message
         message = new Label(getMessage());
         message.setPadding(new Insets(20,20,20,20));
 
+        //gridpane to hold the circles that represent the clues
         GridPane hintsHolder = new GridPane();
-        hintsHolder.setPadding(new Insets(68,10,10,0));
+        hintsHolder.setPadding(new Insets(73,10,10,0));
         hintsHolder.setHgap(2);
         hintsHolder.setVgap(35);
 
+        //add circles to the gridpane and the 2d array that stores them
         for (int col = 0; col < MastermindModel.CODE_LENGTH ; col++) {
             hintsHolder.addColumn(col);
             for (int row = 0; row < MastermindModel.MAX_GUESSES ; row++){
@@ -70,8 +73,8 @@ public class MastermindGraphicalVC extends Application implements Observer{
             }
         }
 
+        //hbox that holds the top row of rectangles that represent the answer
         HBox answerHolder = new HBox();
-
         answerHolder.setSpacing(5);
         for (int k = 0; k < MastermindModel.CODE_LENGTH ; k++) {
             Rectangle rect = new Rectangle(50, 50, Color.GRAY);
@@ -79,6 +82,7 @@ public class MastermindGraphicalVC extends Application implements Observer{
             answerHolder.getChildren().add(k,rect);
         }
 
+        //gridpane to hold the circles that represent the guesses
         GridPane guessesHolder = new GridPane();
         guessesHolder.setHgap(5);
         guessesHolder.setVgap(5);
@@ -88,20 +92,15 @@ public class MastermindGraphicalVC extends Application implements Observer{
                 Rectangle rect = new Rectangle(50, 50, Color.GRAY);
                 int finalRow = model.getRemainingGuesses() - row;
                 int finalCol = col + 1;
-                rect.setOnMouseClicked(event -> {
-                    model.choose(finalRow, finalCol);
-                });
+                rect.setOnMouseClicked(event -> model.choose(finalRow, finalCol));
                 guessesHolder.add(rect,col,row);
                 guesses[col][row] = rect;
             }
         }
 
-        VBox center = new VBox();
-        center.setSpacing(5);
-        center.getChildren().addAll(answerHolder,guessesHolder);
+        //setting the text and actions for the buttons
         Button newGame = new Button("New Game");
         newGame.setOnAction(event -> newGame());
-
         peek = new Button("Peek");
         peek.setOnAction(event -> {
             if (peek.getText().equals("Peek")){
@@ -114,15 +113,21 @@ public class MastermindGraphicalVC extends Application implements Observer{
                 showAnswer(false);
             }
         });
-
         Button guess = new Button("Guess");
         guess.setOnAction(event -> checkGuess());
 
+        //vbox that holds the buttons
         VBox buttons = new VBox();
         buttons.getChildren().addAll(newGame,peek,guess);
         buttons.setSpacing(20);
         buttons.setPadding(new Insets(10,10,10,10));
 
+        //vbox that holds the answers and guesses
+        VBox center = new VBox();
+        center.setSpacing(10);
+        center.getChildren().addAll(answerHolder,guessesHolder);
+
+        //Adding everything to the borderpane
         BorderPane borderPane = new BorderPane();
         borderPane.setPadding(new Insets(10,10,10,10));
         borderPane.setTop(message);
@@ -130,18 +135,19 @@ public class MastermindGraphicalVC extends Application implements Observer{
         borderPane.setLeft(hintsHolder);
         borderPane.setRight(buttons);
 
+        //add the borderpane to the scene, set the title, and configure the scene
         Scene scene = new Scene(borderPane);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Mastermind");
-
         primaryStage.setMinHeight(Screen.getPrimary().getVisualBounds().getHeight() * (2));
         primaryStage.setMinWidth(Screen.getPrimary().getVisualBounds().getWidth() * (.75));
         primaryStage.setResizable(false);
-
         primaryStage.show();
-
     }
 
+    /**
+     * Updates the hints with the given clue data, after calling the model's make guess
+     */
     private void checkGuess() {
         model.makeGuess();
         ArrayList<Character> clueData = model.getClueData();
@@ -155,6 +161,10 @@ public class MastermindGraphicalVC extends Application implements Observer{
         }
     }
 
+    /**
+     * Either shows or hides the answer, depending on the boolean value
+     * @param b whether or not to show the answer
+     */
     private void showAnswer(boolean b) {
         if (b){
             ArrayList solution = model.getSolution();
@@ -186,6 +196,9 @@ public class MastermindGraphicalVC extends Application implements Observer{
         }
     }
 
+    /**
+     * Resets the model and all components of the view
+     */
     private void newGame() {
         model.reset();
         //answer, guesses, hits
@@ -200,6 +213,10 @@ public class MastermindGraphicalVC extends Application implements Observer{
         showAnswer(false);
     }
 
+    /**
+     * return the proper status message according to the model
+     * @return status message
+     */
     private String getMessage(){
         if (this.model.getVictoryStatus()) {
             return "You won the game!!";
@@ -211,6 +228,10 @@ public class MastermindGraphicalVC extends Application implements Observer{
     }
 
 
+    /**
+     * Starts the program by calling Application's launch method.
+     * @param args arguments to be passed into launch
+     */
     public static void main(String[] args) {
         Application.launch(args);
     }

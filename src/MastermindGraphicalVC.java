@@ -30,6 +30,7 @@ public class MastermindGraphicalVC extends Application implements Observer{
     private Rectangle[][] guesses;
     private ArrayList<Rectangle> answer;
     private Circle[][] hints;
+    private Button peek;
 
     @Override
     public void init(){
@@ -89,7 +90,6 @@ public class MastermindGraphicalVC extends Application implements Observer{
                 int finalCol = col + 1;
                 rect.setOnMouseClicked(event -> {
                     model.choose(finalRow, finalCol);
-                    //rect.setFill(nextColor((Color)rect.getFill()));
                 });
                 guessesHolder.add(rect,col,row);
                 guesses[col][row] = rect;
@@ -102,7 +102,7 @@ public class MastermindGraphicalVC extends Application implements Observer{
         Button newGame = new Button("New Game");
         newGame.setOnAction(event -> newGame());
 
-        Button peek = new Button("Peek");
+        peek = new Button("Peek");
         peek.setOnAction(event -> {
             if (peek.getText().equals("Peek")){
                 model.peek();
@@ -180,8 +180,16 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
     private void newGame() {
         model.reset();
-        update(model,null);
+        //answer, guesses, hits
+        for (int i = 0; i < MastermindModel.CODE_LENGTH; i++) {
+            for (int j = 0; j < MastermindModel.MAX_GUESSES; j++) {
+                guesses[i][j].setFill(Color.GRAY);
+                hints[i][j].setFill(Color.GRAY);
 
+            }
+        }
+        peek.setText("Peek");
+        showAnswer(false);
     }
 
     private String getMessage(){

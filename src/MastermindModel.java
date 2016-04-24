@@ -121,7 +121,7 @@ public class MastermindModel extends Observable {
         }
 
         // generate all ' ' and 0's to start off for clues and guesses
-        for (int i = 0; i < CODE_LENGTH * MAX_GUESSES; i++) {
+        for (int i = 0; i < CODE_LENGTH; i++) {
             clues.add(' ');
             guesses.add(0);
         }
@@ -148,16 +148,18 @@ public class MastermindModel extends Observable {
         }
 
         // make sure all components of current guess populated
-        int currGuess = MAX_GUESSES - guessesRemaining; // 0-based
-        int guessIdx = currGuess * CODE_LENGTH;
+        int guessIdx = 0;
         for(int i = 0; i < CODE_LENGTH; i++) {
-            if (guesses.get(guessIdx + i) == 0) {
+            if (guesses.get(i) == 0) {
                 return;
             }
         }
 
         // valid data, so process the guess request
-        int clueIdx = currGuess*CODE_LENGTH;
+        int clueIdx = 0;
+        for (int j = 0; j < CODE_LENGTH; j++) {
+            clues.set(j,' ');
+        }
 
         // work with copies of solution and guess to avoid
         // corrupting actual data
@@ -221,6 +223,12 @@ public class MastermindModel extends Observable {
         if(guessesRemaining == 0) {
             solutionVisible = true; // game over - lost
         }
+
+        for (int k = 0; k < CODE_LENGTH; k++) {
+            //clues.add(' ');
+            guesses.set(k,0);
+        }
+
         setChanged();
         notifyObservers();
     }
@@ -277,15 +285,15 @@ public class MastermindModel extends Observable {
         if(hasWon) {
             return;
         }
-
         int currGuess = MAX_GUESSES - guessesRemaining + 1;
         // do nothing if selected guess not current one.
         if(currGuess != guessNum) {
             return;
         }
+
         // otherwise cycle forward one symbol for the selected
         // guess component
-        int cell = (guessNum-1) * CODE_LENGTH + (guessComp-1);
+        int cell = (guessComp-1);
         int val = guesses.get(cell);
         int newVal = val + 1;
         if (newVal > UNIQUE_SYMBOLS) {
@@ -330,7 +338,7 @@ public class MastermindModel extends Observable {
         }
 
         // generate all ' ' to start off for clues and 0's for guesses
-        for (int i = 0; i < CODE_LENGTH * MAX_GUESSES; i++) {
+        for (int i = 0; i < CODE_LENGTH; i++) {
             clues.set(i,' ');
             guesses.set(i,0);
         }

@@ -172,9 +172,17 @@ public class MastermindGraphicalVC extends Application implements Observer{
     @Override
     public void update(Observable o, Object arg) {
         message.setText(getMessage());
-        for (int col = 0; col < MastermindModel.CODE_LENGTH ; col++) {
-            int curRow = model.getRemainingGuesses() - 1;
-            guesses[col][curRow].setFill(colors.get(model.getGuessData().get(col)));
+        if (model.getVictoryStatus()) {
+            peek.setText("Hide");
+            showAnswer(true);
+        } else if (model.getRemainingGuesses() == 0){
+            peek.setText("Hide");
+            showAnswer(true);
+        } else {
+            for (int col = 0; col < MastermindModel.CODE_LENGTH; col++) {
+                int curRow = model.getRemainingGuesses() - 1;
+                guesses[col][curRow].setFill(colors.get(model.getGuessData().get(col)));
+            }
         }
     }
 

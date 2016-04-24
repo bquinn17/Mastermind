@@ -3,8 +3,8 @@
  * File:  MastermindModel.java
  */
 
-import java.util.Observable;
 import java.util.ArrayList;
+import java.util.Observable;
 import java.util.Random;
 
 /**
@@ -283,7 +283,6 @@ public class MastermindModel extends Observable {
         if(currGuess != guessNum) {
             return;
         }
-
         // otherwise cycle forward one symbol for the selected
         // guess component
         int cell = (guessNum-1) * CODE_LENGTH + (guessComp-1);

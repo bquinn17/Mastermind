@@ -25,17 +25,17 @@ import java.util.Observer;
 public class MastermindGraphicalVC extends Application implements Observer{
 
     private MastermindModel model;
-
     private ArrayList<Color> colors;
     private Label message;
-    private GridPane guesses;
-    private HBox answer;
-    private GridPane hints;
+    private Rectangle[][] guesses;
+    private ArrayList<Rectangle> answer;
+    private Circle[][] hints;
 
     @Override
     public void init(){
         this.model = new MastermindModel();
         this.model.addObserver(this);
+
         this.colors = new ArrayList<>(7);
         this.colors.add(Color.GRAY);
         this.colors.add(Color.BLACK);
@@ -45,82 +45,89 @@ public class MastermindGraphicalVC extends Application implements Observer{
         this.colors.add(Color.RED);
         this.colors.add(Color.GREEN);
 
-
+        answer = new ArrayList<>(MastermindModel.CODE_LENGTH);
+        guesses = new Rectangle[MastermindModel.CODE_LENGTH][MastermindModel.MAX_GUESSES];
+        hints = new Circle[MastermindModel.CODE_LENGTH][MastermindModel.MAX_GUESSES];
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
-        BorderPane borderPane = new BorderPane();
         message = new Label(getMessage());
         message.setPadding(new Insets(20,20,20,20));
 
-        hints = new GridPane();
-        hints.setPadding(new Insets(68,10,10,0));
-        hints.setHgap(2);
-        hints.setVgap(35);
+        GridPane hintsHolder = new GridPane();
+        hintsHolder.setPadding(new Insets(68,10,10,0));
+        hintsHolder.setHgap(2);
+        hintsHolder.setVgap(35);
 
         for (int col = 0; col < MastermindModel.CODE_LENGTH ; col++) {
-            hints.addColumn(col);
-            for (int row = 0; row < MastermindModel.MAX_GUESSES ; row++) {
-                if (row > col) {
-                    hints.add(new Circle(10, Color.GRAY),col,row);
-                } else {
-                    hints.addRow(row);
-                    hints.add(new Circle(10, Color.GRAY),col,row);
-                }
-
+            hintsHolder.addColumn(col);
+            for (int row = 0; row < MastermindModel.MAX_GUESSES ; row++){
+                Circle circle = new Circle(10, Color.GRAY);
+                hintsHolder.add(circle,col,row);
+                hints[col][row] = circle;
             }
-
         }
 
-        answer = new HBox();
-        answer.setSpacing(5);
+        HBox answerHolder = new HBox();
+
+        answerHolder.setSpacing(5);
         for (int k = 0; k < MastermindModel.CODE_LENGTH ; k++) {
             Rectangle rect = new Rectangle(50, 50, Color.GRAY);
-            answer.getChildren().add(k,rect);
+            answer.add(rect);
+            answerHolder.getChildren().add(k,rect);
         }
 
-        guesses = new GridPane();
-        guesses.setHgap(5);
-        guesses.setVgap(5);
+        GridPane guessesHolder = new GridPane();
+        guessesHolder.setHgap(5);
+        guessesHolder.setVgap(5);
         for (int col = 0; col < MastermindModel.CODE_LENGTH ; col++) {
-            guesses.addColumn(col);
+            guessesHolder.addColumn(col);
             for (int row = 0; row < MastermindModel.MAX_GUESSES; row++) {
-                    Rectangle rect = new Rectangle(50, 50, Color.GRAY);
-                    rect.setOnMouseClicked(event -> rect.setFill(nextColor((Color)rect.getFill())));
-                    guesses.add(rect,col,row);
+                Rectangle rect = new Rectangle(50, 50, Color.GRAY);
+                int finalRow = model.getRemainingGuesses() - row;
+                int finalCol = col + 1;
+                rect.setOnMouseClicked(event -> {
+                    model.choose(finalRow, finalCol);
+                    //rect.setFill(nextColor((Color)rect.getFill()));
+                });
+                guessesHolder.add(rect,col,row);
+                guesses[col][row] = rect;
             }
         }
 
         VBox center = new VBox();
         center.setSpacing(5);
-        center.getChildren().addAll(answer,guesses);
-
-        VBox buttons = new VBox();
+        center.getChildren().addAll(answerHolder,guessesHolder);
         Button newGame = new Button("New Game");
         newGame.setOnAction(event -> newGame());
+
         Button peek = new Button("Peek");
         peek.setOnAction(event -> {
             if (peek.getText().equals("Peek")){
                 model.peek();
                 peek.setText("Hide");
+                showAnswer(true);
             } else {
                 model.peek();
                 peek.setText("Peek");
+                showAnswer(false);
             }
         });
+
         Button guess = new Button("Guess");
         guess.setOnAction(event -> checkGuess());
 
+        VBox buttons = new VBox();
         buttons.getChildren().addAll(newGame,peek,guess);
         buttons.setSpacing(20);
         buttons.setPadding(new Insets(10,10,10,10));
 
+        BorderPane borderPane = new BorderPane();
         borderPane.setPadding(new Insets(10,10,10,10));
         borderPane.setTop(message);
         borderPane.setCenter(center);
-        borderPane.setLeft(hints);
+        borderPane.setLeft(hintsHolder);
         borderPane.setRight(buttons);
 
         Scene scene = new Scene(borderPane);
@@ -137,58 +144,43 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
     private void checkGuess() {
         model.makeGuess();
-        message.setText(getMessage());
-    }
-
-    private Color nextColor(Color fill) {
-        int i = colors.indexOf(fill);
-        if (i + 1 < colors.size()){
-            return colors.get(++i);
-        } else {
-            return colors.get(0);
+        ArrayList<Character> clueData = model.getClueData();
+        for (int k = 0; k < clueData.size() ; k++) {
+            int curRow = model.getRemainingGuesses();
+            if (clueData.get(k) == 'B') {
+                hints[k][curRow].setFill(Color.BLACK);
+            } else if (clueData.get(k) == 'W'){
+                hints[k][curRow].setFill(Color.WHITE);
+            }
         }
-        /*if (fill.equals(Color.GREY)){
-            return Color.BLACK;
-        } else if (fill.equals(Color.BLACK)){
-            return Color.WHITE;
-        } else if (fill.equals(Color.WHITE)){
-            return Color.BLUE;
-        } else if (fill.equals(Color.BLUE)){
-            return Color.YELLOW;
-        } else if (fill.equals(Color.YELLOW)){
-            return Color.RED;
-        } else if (fill.equals(Color.RED)){
-            return Color.GREEN;
-        } else if (fill.equals(Color.GREEN)){
-            return Color.BLACK;
-        } else {
-            return Color.GRAY;
-        }*/
     }
 
     private void showAnswer(boolean b) {
-        model.peek();
+        if (b){
+            ArrayList solution = model.getSolution();
+            for (int i = 0; i < solution.size(); i++) {
+                answer.get(i).setFill(colors.get((int)solution.get(i)));
+            }
+        } else {
+            ArrayList solution = model.getSolution();
+            for (int i = 0; i < solution.size(); i++) {
+                answer.get(i).setFill(Color.GRAY);
+            }
+        }
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        getMessage();
-
+        message.setText(getMessage());
+        for (int col = 0; col < MastermindModel.CODE_LENGTH ; col++) {
+            int curRow = model.getRemainingGuesses() - 1;
+            guesses[col][curRow].setFill(colors.get(model.getGuessData().get(col)));
+        }
     }
 
-    private void newGame(){
-
-    }
-
-    private void Guess(){
-
-    }
-
-    /**
-     * updates a single component of a guess. This type of modification corresponds to a user clicking on a single
-     * component of a guess to cycle through the possible choices for that component.
-     */
-    private void choose(){
+    private void newGame() {
+        model.reset();
+        update(model,null);
 
     }
 
@@ -205,9 +197,5 @@ public class MastermindGraphicalVC extends Application implements Observer{
 
     public static void main(String[] args) {
         Application.launch(args);
-        /*MastermindGraphicalVC game = new MastermindGraphicalVC();
-        Stage stage = new Stage(Application.Parameters);
-        game.start(game);*/
-
     }
 }
